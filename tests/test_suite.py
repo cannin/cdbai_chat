@@ -377,7 +377,7 @@ class RunCodeTestCase(unittest.TestCase):
 
             with patch.object(pipeline, "completion", return_value=response), \
                  patch.object(pipeline, "_maybe_correct_prompt", side_effect=lambda p: p):
-                result = pipeline.run_pipeline("In CCLE what is the correlation of TP53 to MDM2")
+                result = pipeline.cdbai_chat("In CCLE what is the correlation of TP53 to MDM2")
                 self.assertEqual(result["type"], "string")
                 self.assertTrue(result["value"].startswith("rows="))
                 self.assertTrue(result.get("code", "").startswith("https://s3.us-east-1.amazonaws.com/bucket/test_tmp_"))
@@ -415,7 +415,7 @@ class RunCodeTestCase(unittest.TestCase):
             )
 
             with patch.object(pipeline, "completion", return_value=response):
-                result = pipeline.run_pipeline("show plot")
+                result = pipeline.cdbai_chat("show plot")
                 self.assertEqual(result["type"], "plot")
                 self.assertTrue(result["value"].startswith("https://s3.us-east-1.amazonaws.com/bucket/test_tmp_"))
                 self.assertTrue(result["code"].startswith("https://s3.us-east-1.amazonaws.com/bucket/test_tmp_"))

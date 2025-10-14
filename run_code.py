@@ -4,13 +4,13 @@ import logging
 import os
 from dotenv import load_dotenv
 
-from cdbai.pipeline import run_pipeline
+from cdbai.pipeline import cdbai_chat
 
 load_dotenv()
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run the BigQuery agent pipeline.")
+    parser = argparse.ArgumentParser(description="Run the cdbai_chat pipeline.")
     parser.add_argument("--prompt", required=True, help="User prompt describing the desired analysis.")
     parser.add_argument(
         "-d",
@@ -31,7 +31,7 @@ def main() -> None:
         print("Loaded environment variables:")
         print(json.dumps(env_snapshot, indent=2, sort_keys=True))
 
-    result = run_pipeline(args.prompt)
+    result = cdbai_chat(args.prompt)
     print(json.dumps(result, indent=2, sort_keys=True))
 
 

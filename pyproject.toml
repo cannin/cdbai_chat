@@ -1,7 +1,7 @@
 [project]
-name = "google-bigquery-agent"
+name = "cdbai-chat"
 version = "0.1.0"
-description = "Agentic utilities for drug response and -omics exploration on Google BigQuery."
+description = "cdbai_chat agent for drug response and -omics exploration."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -31,3 +31,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["cdbai"]
+
+[tool.setuptools.package-data]
+cdbai = ["data/*.csv"]

@@ -1,4 +1,4 @@
-# CellMinerCDB AI MCP
+# cdbai_chat Agent
 
 This project wraps the drug response/-omics analysis workflow into an importable package that can also be launched from the command line. The agent takes a natural-language prompt, uses an LLM once to emit executable Python that embeds the exact BigQuery SQL, executes the query, and uploads all run artifacts (code, CSV, plots, JSON) to S3.
 
@@ -26,9 +26,9 @@ The command prints a JSON result and writes artifacts to `output/`. Returned JSO
 ## Importable API
 
 ```python
-from cdbai import run_pipeline
+from cdbai import cdbai_chat
 
-result = run_pipeline("calculate the correlation of tp53 vs mdm2 expression in ccle")
+result = cdbai_chat("calculate the correlation of tp53 vs mdm2 expression in ccle")
 print(result)
 ```
 

@@ -700,7 +700,7 @@ def _run_pipeline(prompt: str):
         return result
 
 
-def run_pipeline(prompt: str) -> Dict[str, Any]:
+def cdbai_chat(prompt: str) -> Dict[str, Any]:
     """Run the agent for a prompt and return the JSON-safe result dictionary.
 
     Args:

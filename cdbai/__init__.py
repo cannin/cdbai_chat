@@ -1,4 +1,4 @@
 """CDBAI BigQuery agent package."""
-from .pipeline import run_pipeline
+from .pipeline import cdbai_chat
 
-__all__ = ["run_pipeline"]
+__all__ = ["cdbai_chat"]
