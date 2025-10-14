@@ -1,4 +1,4 @@
-# Google BigQuery Agent
+# CellMinerCDB AI MCP
 
 This project wraps the drug response/-omics analysis workflow into an importable package that can also be launched from the command line. The agent takes a natural-language prompt, uses an LLM once to emit executable Python that embeds the exact BigQuery SQL, executes the query, and uploads all run artifacts (code, CSV, plots, JSON) to S3.
 
