@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from datetime import datetime
+from importlib import resources
 from pathlib import Path
 from typing import Dict, Optional, Any, List, Set
 
@@ -28,7 +29,7 @@ from .utils import (
 )
 
 # ===== Config =====
-TEMPLATE_PATH = "prompt_to_sql_context_template.jinja"
+TEMPLATE_NAME = "prompt_to_sql_context_template.jinja"
 SMART_LLM_MODEL = os.environ.get("SMART_LLM", "azure/gpt-5")
 FAST_LLM_MODEL = os.environ.get("FAST_LLM", os.environ.get("LITELLM_FAST_MODEL", "azure/gpt-4o-mini"))
 OUTPUT_DIR = Path("output")
@@ -380,21 +381,23 @@ def _err(step, detail, input_preview=""):
     return {"type": "error", "value": f"ERROR at step '{step}': {detail}{preview}"}
 
 
-def _read_template(path):
-    """Read the code-generation template from disk.
+def _read_template(resource_name: str) -> str:
+    """Read the code-generation template bundled with the package.
 
     Args:
-        path: Filesystem path to the Jinja template.
+        resource_name: Template filename located under ``cdbai.data``.
 
     Returns:
         Template text.
     """
     try:
-        logger.info("Reading prompt template from %s", path)
-        with open(path, "r", encoding="utf-8") as f:
-            return f.read()
+        logger.info("Reading prompt template %s from package data", resource_name)
+        template_resource = resources.files("cdbai.data") / resource_name
+        return template_resource.read_text(encoding="utf-8")
     except Exception as e:
-        raise RuntimeError(f"Could not read template file '{path}': {e.__class__.__name__}: {e}") from e
+        raise RuntimeError(
+            f"Could not read template resource '{resource_name}': {e.__class__.__name__}: {e}"
+        ) from e
 
 
 def _render_template(template_text, *, user_prompt: str, normalized_prompt: str, **extra) -> str:
@@ -646,7 +649,7 @@ def _run_pipeline(prompt: str):
 
         # 1) Read template file
         try:
-            template_text = _read_template(TEMPLATE_PATH)
+            template_text = _read_template(TEMPLATE_NAME)
         except Exception as e:
             result = _err("read_template_file", str(e), input_preview=TEMPLATE_PATH)
             return result

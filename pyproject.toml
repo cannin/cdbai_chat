@@ -1,6 +1,6 @@
 [project]
 name = "cdbai"
-version = "0.1.0"
+version = "0.1.1"
 description = "cdbai agent for drug response and -omics exploration."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -33,4 +33,4 @@ build-backend = "setuptools.build_meta"
 include = ["cdbai"]
 
 [tool.setuptools.package-data]
-cdbai = ["data/*.csv"]
+cdbai = ["data/*.csv", "data/*.jinja"]
