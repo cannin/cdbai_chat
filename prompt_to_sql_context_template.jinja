@@ -1,0 +1,107 @@
+<tables>
+=== Data ===
+   data_type dataset   obs_name     var_name     value tissue
+0        cop    ctrp  CVCL_0002        DDX25  0.042600  Blood
+1        cop    ctrp  CVCL_0002         GYPC  0.047600  Blood
+2        cop    ctrp  CVCL_0002        MON1A  0.063100  Blood
+3        cop    ctrp  CVCL_0002         LNX1  0.044300  Blood
+4        cop    ctrp  CVCL_0002    MIRLET7F2  0.000600  Blood
+5        cop    ctrp  CVCL_0002        BTBD9  0.049500  Blood
+
+=== Metadata ===
++-------------+-----------+-------------+
+| column_name | data_type | description |
++-------------+-----------+-------------+
+| data_type   | STRING    | act: Drug activity – PubChem ID; cop: DNA Copy Number – HGNC; mut: DNA Mutation – HGNC; met: DNA Methylation 450K – HGNC; mth: DNA Methylation 850K – HGNC; bmt: Body DNA Methylation 850K – HGNC; rrb: DNA Methylation RRBS – HGNC; exp: Microarray RNA Expression using z-score – HGNC; xai: Microarray RNA Expression using Avg.log2 – HGNC; pro: RPLA Protein – protein/HGNC; mir: MicroRNA – microRNA ID; mda: Miscellaneous phenotypic – Miscellaneous phenotypic name; swa: SWATH-MS Protein – protein/HGNC; xsq: RNA-seq Expression using log2.FPKM+1 – HGNC; cri: Crispr – HGNC; mtb: Metabolomics – metabolite; his: Histone H3K27ac – HGNC; hs4: Histone H3K4me3 – HGNC; sur: Surface Receptor Protein – protein/HGNC |
+| dataset     | STRING    | acc: adrenocortical carcinoma; achilles: Achilles CRISPR; ccle: Broad Cancer Cell Line Encyclopedia; ctrp: Broad Cancer Therapeutics Response Portal using CellTitreGlo; gdsc1: drug response using resazurin or Syto60; gdsc2: drug response using CellTitreGlo; mdaMills: MD Anderson proteomics; nci60: NCI DTP drug response using sulforhodamine B and multigenomics ; nci60Hts384: NCI DTP drug response using CellTitreGlo; nciSclc: NCI small cell lung cancer drug response and multigenomics; prism: Broad PRISM drug response using CellTitreGlo; tncats: NIH NCATS drug response using CellTitreGlo; uniSarcoma: sarcoma FIXME|
+| obs_name    | STRING    | Cellosaurus identifiers for cell lines; these always start with CVCL_|
+| var_name    | STRING    | Either gene names as HGNC gene symbols (alphanumeric) or PubChem IDs; PubChem (numeric only)|
+| value       | FLOAT64   | Numeric value for the obs_name and var_name pair|
+| tissue      | STRING    | Adrenal_Gland; Biliary_Tract; Bladder_Urinary_Tract; Blood; Bone; Bowel; Brain_CNS; Breast; Cervix; Esophagus_Stomach; Eye; Head_Neck; Kidney; Liver; Lung; Lymph; Mesothelium; Other; Ovary; Pancreas; Peripheral_Nervous_System; Prostate; Skin; Soft_Tissue; Thyroid; Uterus|
++-------------+-----------+-------------+
+</tables>
+
+<functions>
+Available helpers (already imported):
+- normalize_prompt(prompt: str) -> str
+- execute_sql_query(sql_query: str) -> pd.DataFrame
+- allocate_plot_png_path() -> str  (reserve a PNG filename for plot output)
+- allocate_plot_svg_path(png_path: Optional[str] = None) -> str  (use the PNG path to derive the matching SVG filename)
+</functions>
+
+<sql_example>
+* Typically you will only be changing the WHERE clause based on the user request
+* By default, return all data columns
+
+# EXAMPLE 1
+SELECT *
+FROM `{{ default_table_fqn }}`
+WHERE UPPER(var_name) = 'TP53'\n  AND LOWER(dataset) IN ('ccle', 'nci60')\n  AND value IS NOT NULL
+LIMIT 5120;
+</sql_example>
+
+Normalized prompt:
+{{ normalized_prompt }}
+
+Original user prompt:
+{{ user_prompt }}
+
+# Rules for Writing Python Code
+
+## Embedded SQL Rules
+* Always use the FROM table as FROM `{{ default_table_fqn }}`; it is the only one that exists
+* Always put a LIMIT value of 5120 in the SQL query
+* Do not include ORDER_BY or GROUP_BY statements in the SQL; do these transformations in Python if needed
+* Only return data tables from the SQL statement (e.g., do not run a correlations, averages, sums, etc) in the SQL statements
+* Build the necessary SQL inline (do NOT call generate_sql) and executes it via execute_sql_query.
+* Keep the SQL read-only (single SELECT), obey the row limit, and ensure required columns are present
+* Ensure any SQL statement generation uses entities in the normalized prompt not the original user prompt, but plot labels/titles must mirror the original names exactly as given by the user
+* For SQL statements in generated code never put f-strings; always put the evaluated f-string with variables replaced
+
+## Dependency Rules
+* Performs the requested analysis (correlations, aggregations, plots, etc.) using allowed libraries only
+* Includes import statements to required dependency libraries 
+
+## Code Rules
+* Use pandas pivot if you need to convert from a long format table to wide dataframe
+* Do not use any variable outside the scope where it is guaranteed to be set
+* Use descriptive names to reduce confusion with existing functions
+* Keep all uses of a variable within the try/else that created it
+* Use import traceback and traceback.format_exc() to debug
+
+## Plot Rules
+* When creating plots, first call allocate_plot_png_path() to reserve the PNG filename, then call allocate_plot_svg_path(png_path) to derive the matching SVG filename. Save both files and set result to {"type": "plot", "value": <png_path>, "svg": <svg_path>}
+* Use Python Seaborn when possible
+* Use the following rcParams:
+
+```
+'font.size': 9,
+'axes.titlesize': 9,
+'axes.labelsize': 9,
+'legend.fontsize': 9,
+'legend.edgecolor': 'black',
+'legend.frameon': False,
+'lines.linewidth': 0.5,
+'font.family': ['Arial', 'sans-serif'],
+'svg.fonttype': 'none',
+'pdf.fonttype': 'truetype',
+'axes.spines.top': True,
+'axes.spines.right': True,
+'axes.spines.left': True,
+'axes.spines.bottom': True,
+'axes.linewidth': 0.5,
+'xtick.major.width': 0.5,
+'ytick.major.width': 0.5,
+'xtick.labelsize': 9,
+'ytick.labelsize': 9
+```
+
+## Result Rules
+* Populates the variable `result` with the final response dict: {"type": "string"|"number"|"dataframe"|"plot"|"error", "value": ...}.
+
+# Error Checking Rules
+* Includes defensive checks with informative error messages
+
+# Styling Rules
+* Always use triple-quoted strings never implicit string concatenation with parentheses
+* Return ONLY executable Python code (no backticks, no commentary)

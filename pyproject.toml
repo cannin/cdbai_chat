@@ -1,0 +1,33 @@
+[project]
+name = "google-bigquery-agent"
+version = "0.1.0"
+description = "Agentic utilities for drug response and -omics exploration on Google BigQuery."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "boto3",
+    "db-dtypes",
+    "flashtext",
+    "google-cloud-bigquery",
+    "google-cloud-bigquery-storage",
+    "google-auth",
+    "jinja2",
+    "litellm",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "pillow",
+    "python-dotenv",
+    "scikit-learn",
+    "scipy",
+    "seaborn",
+    "tenacity",
+    "tqdm",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["cdbai"]
