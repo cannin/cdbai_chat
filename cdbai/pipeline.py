@@ -15,9 +15,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from PIL import Image
 from dotenv import load_dotenv
-from litellm import completion
-
-logger = logging.getLogger(__name__)
+import litellm
 
 from .utils import (
     check_required_env_vars,
@@ -28,9 +26,14 @@ from .utils import (
     get_default_table_fqn,
 )
 
+logger = logging.getLogger(__name__)
+litellm.drop_params = True
+
+
 # ===== Config =====
 TEMPLATE_NAME = "prompt_to_sql_context_template.jinja"
 SMART_LLM_MODEL = os.environ.get("SMART_LLM", "azure/gpt-5")
+SMART_LLM_REASONING_EFFORT = os.environ.get("SMART_LLM_REASONING_EFFORT", "medium")
 FAST_LLM_MODEL = os.environ.get("FAST_LLM", os.environ.get("LITELLM_FAST_MODEL", "azure/gpt-4o-mini"))
 OUTPUT_DIR = Path("output")
 RUN_OUTPUT_PREFIX = ""
@@ -460,7 +463,7 @@ def _maybe_correct_prompt(prompt: str) -> str:
         "Return the corrected prompt. If unsure about any term, return the original prompt unchanged."
     )
     try:
-        response = completion(
+        response = litellm.completion(
             model=FAST_LLM_MODEL,
             temperature=0.0,
             messages=[
@@ -572,6 +575,28 @@ def _post_process_result(result: Dict, *, image_content_type: str = "image/png")
     return result
 
 
+def extract_response_text(response: str):
+    """ Newer SDKs may have this convenience prop:
+
+    Args:
+        response: LiteLLM response from the Responses API
+
+    Returns:
+        LLM response text
+    """
+    text = getattr(response, "output_text", None)
+    if text is not None:
+        return text
+
+    # Fallback: walk the structured output
+    parts = []
+    for item in getattr(response, "output", []) or []:
+        for block in getattr(item, "content", []) or []:
+            if getattr(block, "type", None) == "output_text":
+                parts.append(block.text)
+    return "".join(parts)
+
+
 def _call_llm(rendered_prompt: str):
     """Call the smart (and optionally fast) LLM to obtain executable Python code.
 
@@ -584,42 +609,59 @@ def _call_llm(rendered_prompt: str):
     Raises:
         Exception: When both configured models fail to produce a response.
     """
-    preferred_models: List[str] = []
-    if SMART_LLM_MODEL:
-        preferred_models.append(SMART_LLM_MODEL)
-    if FAST_LLM_MODEL and FAST_LLM_MODEL != SMART_LLM_MODEL:
-        preferred_models.append(FAST_LLM_MODEL)
-
+    model_name = SMART_LLM_MODEL
+    reasoning_effort = SMART_LLM_REASONING_EFFORT
     last_exc: Optional[Exception] = None
-    for model_name in preferred_models:
-        try:
-            logger.info("Calling litellm model %s", model_name)
-            response = completion(
-                model=model_name,
-                temperature=0.0,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are a coding assistant. Output ONLY Python code that can be executed directly. "
-                            "Your code must perform the described analysis and assign a variable named 'result' "
-                            "with schema: {'type': 'string'|'number'|'dataframe'|'plot'|'error', 'value': ...}. "
-                            "You may use numpy, scipy, pandas, scikit-learn, matplotlib, seaborn, and pillow — "
-                            "these are already available. Do not import anything else or print explanations."
-                        ),
-                    },
-                    {"role": "user", "content": rendered_prompt},
-                ],
-            )
-            assistant_text = response.choices[0].message.content or ""
-            logger.info("Model response received (%d chars) using %s", len(assistant_text), model_name)
-            return assistant_text
-        except Exception as exc:
-            logger.warning("Model %s failed: %s", model_name, exc)
-            last_exc = exc
-            continue
+
+    try:
+        logger.info("Calling litellm model %s", model_name)
+
+        # response = litellm.completion(
+        #     model=model_name,
+        #     temperature=0.0,
+        #     messages=[
+        #         {
+        #             "role": "system",
+        #             "content": (
+        #                 "You are a coding assistant. Output ONLY Python code that can be executed directly. "
+        #                 "Your code must perform the described analysis and assign a variable named 'result' "
+        #                 "with schema: {'type': 'string'|'number'|'dataframe'|'plot'|'error', 'value': ...}. "
+        #                 "You may use numpy, scipy, pandas, scikit-learn, matplotlib, seaborn, and pillow — "
+        #                 "these are already available. Do not import anything else or print explanations."
+        #             ),
+        #         },
+        #         {"role": "user", "content": rendered_prompt},
+        #     ],
+        # )
+        #assistant_text = response.choices[0].message.content or ""
+
+        response = litellm.responses(
+            model=model_name,
+            temperature=0.0,
+            input=[{'role': 'system', 'content': (
+                        "You are a coding assistant. Output ONLY Python code that can be executed directly. "
+                        "Your code must perform the described analysis and assign a variable named 'result' "
+                        "with schema: {'type': 'string'|'number'|'dataframe'|'plot'|'error', 'value': ...}. "
+                        "You may use numpy, scipy, pandas, scikit-learn, matplotlib, seaborn, and pillow — "
+                        "these are already available. Do not import anything else or print explanations."
+                    )},
+                    {'role': 'user', 'content': rendered_prompt}],
+            reasoning={
+                "effort": reasoning_effort
+            }
+        )
+        assistant_text = extract_response_text(response) or ""
+
+        logger.info("Model response received (%d chars) using %s", len(assistant_text), model_name)
+
+        return assistant_text
+    except Exception as exc:
+        logger.warning("Model %s failed: %s", model_name, exc)
+        last_exc = exc
+
     if last_exc:
         raise last_exc
+
     raise RuntimeError("No LLM models configured")
 
 
@@ -651,7 +693,7 @@ def _run_pipeline(prompt: str):
         try:
             template_text = _read_template(TEMPLATE_NAME)
         except Exception as e:
-            result = _err("read_template_file", str(e), input_preview=TEMPLATE_PATH)
+            result = _err("read_template_file", str(e), input_preview=TEMPLATE_NAME)
             return result
 
         # 2) Render template with the full user prompt

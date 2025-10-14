@@ -231,8 +231,8 @@ wheels = [
 ]
 
 [[package]]
-name = "cdbai-chat"
-version = "0.1.0"
+name = "cdbai"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "boto3" },
