@@ -16,11 +16,6 @@ import pandas as pd
 
 from .normalize_prompt import normalize_prompt
 
-try:  # pragma: no cover - import resolution depends on deployment packaging
-    from google_bigquery import make_bq_client  # type: ignore
-except ImportError:  # pragma: no cover
-    from ignore.google_bigquery import make_bq_client  # type: ignore
-
 logger = logging.getLogger(__name__)
 
 REQUIRED_ENV_VARS: Sequence[str] = (
@@ -42,6 +37,16 @@ REQUIRED_ENV_VARS: Sequence[str] = (
 
 class MissingEnvironmentVariableError(RuntimeError):
     """Raised when required environment variables are missing."""
+
+
+def make_bq_client(connection_info: dict) -> bigquery.Client:
+    project = connection_info["project_id"]
+    creds = connection_info.get("credentials")
+
+    return bigquery.Client(
+        project=project,
+        credentials=creds,
+    )
 
 
 def check_required_env_vars() -> None:
