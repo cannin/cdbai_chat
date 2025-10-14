@@ -1,7 +1,7 @@
 [project]
-name = "cdbai-chat"
+name = "cdbai"
 version = "0.1.0"
-description = "cdbai_chat agent for drug response and -omics exploration."
+description = "cdbai agent for drug response and -omics exploration."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

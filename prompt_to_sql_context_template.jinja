@@ -57,6 +57,7 @@ Original user prompt:
 * Keep the SQL read-only (single SELECT), obey the row limit, and ensure required columns are present
 * Ensure any SQL statement generation uses entities in the normalized prompt not the original user prompt, but plot labels/titles must mirror the original names exactly as given by the user
 * For SQL statements in generated code never put f-strings; always put the evaluated f-string with variables replaced
+* SQL statements written should be compatible with Google BigQuery
 
 ## Dependency Rules
 * Performs the requested analysis (correlations, aggregations, plots, etc.) using allowed libraries only
