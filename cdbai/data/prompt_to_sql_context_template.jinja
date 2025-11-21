@@ -50,7 +50,7 @@ Original user prompt:
 
 ## Embedded SQL Rules
 * Always use the FROM table as FROM `{{ default_table_fqn }}`; it is the only one that exists
-* Always put a LIMIT value of 5120 in the SQL query
+* Always put a LIMIT value of 51200 in the SQL query
 * Do not include ORDER_BY or GROUP_BY statements in the SQL; do these transformations in Python if needed
 * Only return data tables from the SQL statement (e.g., do not run a correlations, averages, sums, etc) in the SQL statements
 * Build the necessary SQL inline (do NOT call generate_sql) and executes it via execute_sql_query.
@@ -98,7 +98,7 @@ Original user prompt:
 ```
 
 ## Result Rules
-* Populates the variable `result` with the final response dict: {"type": "string"|"number"|"dataframe"|"plot"|"error", "value": ...}.
+* Populates the variable `result` with the final response dict: {"type": "string"|"markdown"|"number"|"dataframe"|"plot"|"error", "value": ...}.
 
 # Error Checking Rules
 * Includes defensive checks with informative error messages
