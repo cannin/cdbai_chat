@@ -34,6 +34,8 @@ REQUIRED_ENV_VARS: Sequence[str] = (
     "SMART_LLM",
 )
 
+FORCED_SQL_LIMIT = 512000
+
 
 class MissingEnvironmentVariableError(RuntimeError):
     """Raised when required environment variables are missing."""
@@ -93,9 +95,6 @@ def _qualify_default_table(sql_query: str) -> str:
     pattern_dataset = re.compile(rf"`?{re.escape(dataset)}\.{re.escape(table)}`?", re.IGNORECASE)
     qualified_sql = pattern_dataset.sub(full_name, qualified_sql)
     return qualified_sql
-
-
-FORCED_SQL_LIMIT = 5120
 
 
 def generate_sql(
