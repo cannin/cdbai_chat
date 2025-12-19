@@ -32,11 +32,11 @@ litellm.drop_params = True
 
 # ===== Config =====
 TEMPLATE_NAME = "prompt_to_sql_context_template.jinja"
-SMART_LLM_MODEL = os.environ.get("SMART_LLM", "azure/gpt-5")
-SMART_LLM_REASONING_EFFORT = os.environ.get("SMART_LLM_REASONING_EFFORT", "medium")
-FAST_LLM_MODEL = os.environ.get("FAST_LLM", os.environ.get("LITELLM_FAST_MODEL", "azure/gpt-4o-mini"))
 OUTPUT_DIR = Path("output")
 RUN_OUTPUT_PREFIX = ""
+FAST_LLM_MODEL = os.environ.get("FAST_LLM", os.environ.get("LITELLM_FAST_MODEL", "azure/gpt-4o-mini"))
+SMART_LLM_MODEL = os.environ.get("SMART_LLM", "azure/gpt-5")
+SMART_LLM_REASONING_EFFORT = os.environ.get("SMART_LLM_REASONING_EFFORT", "medium")
 
 # Ensure matplotlib is non-interactive for headless environments
 load_dotenv()
@@ -465,7 +465,7 @@ def _maybe_correct_prompt(prompt: str) -> str:
     try:
         response = litellm.completion(
             model=FAST_LLM_MODEL,
-            temperature=0.0,
+            #temperature=0.0,
             messages=[
                 {"role": "system", "content": system_msg},
                 {"role": "user", "content": prompt},
@@ -637,7 +637,7 @@ def _call_llm(rendered_prompt: str):
 
         response = litellm.responses(
             model=model_name,
-            temperature=0.0,
+            #temperature=0.0,
             input=[{'role': 'system', 'content': (
                         "You are a coding assistant. Output ONLY Python code that can be executed directly. "
                         "Your code must perform the described analysis and assign a variable named 'result' "
@@ -757,4 +757,5 @@ def cdbai_chat(prompt: str) -> Dict[str, Any]:
     pipeline_result = _run_pipeline(prompt)
     safe_result = _to_json_safe(pipeline_result)
     _write_json_snapshot(safe_result)
+
     return safe_result
