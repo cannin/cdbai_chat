@@ -531,7 +531,7 @@ def _exec_user_code(code: str, *, extra_globals: Optional[Dict[str, str]] = None
     if extra_globals:
         exec_globals.update(extra_globals)
 
-    # This avoids the scoping issue where list comprehensions can't see names
+    # This avoids the scoping issue where list comprehensions cannot see names
     # that were assigned at top level when globals != locals.
     ns = dict(exec_globals)
 
@@ -654,7 +654,7 @@ def _call_llm(rendered_prompt: str):
                         "Your code must perform the described analysis and assign a variable named 'result' "
                         "with schema: {'type': 'string'|'number'|'dataframe'|'plot'|'error', 'value': ...}. "
                         "You may use numpy, scipy, pandas, scikit-learn, matplotlib, seaborn, and pillow — "
-                        "these are already available. Do not import anything else or print explanations."
+                        "these are already available; no other data analysis packages is available. Do not import any other library or print explanations."
                     )},
                     {'role': 'user', 'content': rendered_prompt}],
             reasoning={
