@@ -1,7 +1,8 @@
 import json
 import logging
 import os
-from datetime import datetime
+import time
+from datetime import datetime, timezone
 from importlib import resources
 from pathlib import Path
 from typing import Dict, Optional, Any, List, Set
@@ -49,6 +50,7 @@ _RUN_ID: Optional[str] = None
 _QUERY_COUNTER: int = 0
 _LAST_CODE_TEXT: Optional[str] = None
 _NORMALIZED_PROMPT: Optional[str] = None
+_RUN_START_MONOTONIC: Optional[float] = None
 
 
 def _init_run_context() -> None:
@@ -59,11 +61,12 @@ def _init_run_context() -> None:
     artifacts without additional checks. Honors the optional `RUN_OUTPUT_PREFIX`
     (and the implicit `test_` prefix when running under pytest).
     """
-    global _RUN_ID, _QUERY_COUNTER, RUN_OUTPUT_PREFIX, _LAST_CODE_TEXT, _NORMALIZED_PROMPT
-    _RUN_ID = datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%S")
+    global _RUN_ID, _QUERY_COUNTER, RUN_OUTPUT_PREFIX, _LAST_CODE_TEXT, _NORMALIZED_PROMPT, _RUN_START_MONOTONIC
+    _RUN_ID = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
     _QUERY_COUNTER = 0
     _LAST_CODE_TEXT = None
     _NORMALIZED_PROMPT = None
+    _RUN_START_MONOTONIC = time.monotonic()
     OUTPUT_DIR.mkdir(exist_ok=True)
     prefix = os.environ.get("RUN_OUTPUT_PREFIX")
     if prefix is None and os.environ.get("PYTEST_CURRENT_TEST"):
@@ -80,7 +83,7 @@ def _next_filename(suffix: str) -> Path:
     Returns:
         Path located under `output/` with the run id (and optional prefix) baked in.
     """
-    run_id = _RUN_ID or datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%S")
+    run_id = _RUN_ID or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
     base = OUTPUT_DIR / f"{RUN_OUTPUT_PREFIX}tmp_{run_id}{suffix}"
     if not base.exists():
         return base
@@ -571,6 +574,10 @@ def _post_process_result(result: Dict, *, image_content_type: str = "image/png")
         result = {"type": "error", "value": value}
 
     result = _inject_artifact_links(result)
+    if "duration_seconds" not in result:
+        start = _RUN_START_MONOTONIC
+        duration_seconds = time.monotonic() - start if start is not None else 0.0
+        result["duration_seconds"] = duration_seconds
 
     return result
 

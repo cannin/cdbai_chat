@@ -372,10 +372,10 @@ class RunCodeTestCase(unittest.TestCase):
                 "result = {\"type\": \"string\", \"value\": f'rows={len(df)}'}\n"
             )
             response = SimpleNamespace(
-                choices=[SimpleNamespace(message=SimpleNamespace(content=f"```python\n{code}\n```"))]
+                output_text=f"```python\n{code}\n```"
             )
 
-            with patch.object(pipeline, "completion", return_value=response), \
+            with patch.object(pipeline.litellm, "responses", return_value=response, create=True), \
                  patch.object(pipeline, "_maybe_correct_prompt", side_effect=lambda p: p):
                 result = pipeline.cdbai_chat("In CCLE what is the correlation of TP53 to MDM2")
                 self.assertEqual(result["type"], "string")
@@ -384,6 +384,8 @@ class RunCodeTestCase(unittest.TestCase):
                 self.assertTrue(result.get("csv", "").startswith("https://s3.us-east-1.amazonaws.com/bucket/test_tmp_"))
                 self.assertTrue(result.get("normalized_prompt", "").startswith("in ccle what is the correlation"))
                 self.assertEqual(result.get("original_prompt"), "In CCLE what is the correlation of TP53 to MDM2")
+                self.assertIsInstance(result.get("duration_seconds"), (int, float))
+                self.assertGreaterEqual(result.get("duration_seconds"), 0.0)
                 self.assertIn((".py", "text/x-python"), uploads)
                 self.assertIn((".csv", "text/csv"), uploads)
                 self.assertIn((".txt", "text/plain"), uploads)
@@ -411,16 +413,18 @@ class RunCodeTestCase(unittest.TestCase):
                 "result = {\"type\": \"plot\", \"value\": upload_file_to_s3(png_path), \"svg\": upload_file_to_s3(svg_path)}\n"
             )
             response = SimpleNamespace(
-                choices=[SimpleNamespace(message=SimpleNamespace(content=f"```python\n{code}\n```"))]
+                output_text=f"```python\n{code}\n```"
             )
 
-            with patch.object(pipeline, "completion", return_value=response):
+            with patch.object(pipeline.litellm, "responses", return_value=response, create=True):
                 result = pipeline.cdbai_chat("show plot")
                 self.assertEqual(result["type"], "plot")
                 self.assertTrue(result["value"].startswith("https://s3.us-east-1.amazonaws.com/bucket/test_tmp_"))
                 self.assertTrue(result["code"].startswith("https://s3.us-east-1.amazonaws.com/bucket/test_tmp_"))
                 self.assertTrue(result["csv"].startswith("https://s3.us-east-1.amazonaws.com/bucket/test_tmp_"))
                 self.assertTrue(result["svg"].startswith("https://s3.us-east-1.amazonaws.com/bucket/test_tmp_"))
+                self.assertIsInstance(result.get("duration_seconds"), (int, float))
+                self.assertGreaterEqual(result.get("duration_seconds"), 0.0)
                 self.assertIn((".png", "image/png"), uploads)
                 self.assertIn((".svg", "image/svg+xml"), uploads)
                 self.assertIn((".py", "text/x-python"), uploads)
