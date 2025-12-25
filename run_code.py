@@ -11,7 +11,7 @@ load_dotenv()
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the cdbai_chat pipeline.")
-    parser.add_argument("--prompt", required=True, help="User prompt describing the desired analysis.")
+    parser.add_argument("-p", "--prompt", required=True, help="User prompt describing the desired analysis.")
     parser.add_argument(
         "-d",
         "--debug",
