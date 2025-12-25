@@ -574,10 +574,10 @@ def _post_process_result(result: Dict, *, image_content_type: str = "image/png")
         result = {"type": "error", "value": value}
 
     result = _inject_artifact_links(result)
-    if "duration_seconds" not in result:
+    if "duration_sec" not in result:
         start = _RUN_START_MONOTONIC
         duration_seconds = time.monotonic() - start if start is not None else 0.0
-        result["duration_seconds"] = duration_seconds
+        result["duration_sec"] = duration_seconds
 
     return result
 
