@@ -223,6 +223,7 @@ REQUIRED_ENV = {
     "GOOGLE_APPLICATION_CREDENTIALS": "adc.json",
     "LITELLM_PROXY_API_BASE": "http://proxy",
     "AWS_S3_BUCKET": "bucket",
+    "FORCED_SQL_LIMIT": "750000",
 }
 
 
@@ -247,6 +248,17 @@ class UtilsTestCase(unittest.TestCase):
                 "In CCLE what is the correlation of TP53 to MDM2 for CVCL_0002",
                 normalized_prompt="in ccle what is the correlation of tp53 to mdm2 for cvcl_0002",
             )
+
+    def test_get_forced_sql_limit_reads_env(self):
+        self.assertEqual(utils.get_forced_sql_limit(), 750000)
+        with patch.dict(os.environ, {"FORCED_SQL_LIMIT": "123"}):
+            self.assertEqual(utils.get_forced_sql_limit(), 123)
+        with patch.dict(os.environ, {"FORCED_SQL_LIMIT": ""}):
+            with self.assertRaises(utils.MissingEnvironmentVariableError):
+                utils.get_forced_sql_limit()
+        with patch.dict(os.environ, {"FORCED_SQL_LIMIT": "not_an_int"}):
+            with self.assertRaises(ValueError):
+                utils.get_forced_sql_limit()
 
     def test_upload_file_to_s3(self):
         uploaded = []

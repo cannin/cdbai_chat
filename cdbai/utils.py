@@ -30,11 +30,31 @@ REQUIRED_ENV_VARS: Sequence[str] = (
     "AWS_SECRET_ACCESS_KEY",
     "AWS_S3_BUCKET",
     "AWS_DEFAULT_REGION",
+    "FORCED_SQL_LIMIT",
     "FAST_LLM",
     "SMART_LLM",
 )
 
-FORCED_SQL_LIMIT = 750000
+
+def get_forced_sql_limit() -> int:
+    """Read the forced SQL limit from the environment.
+
+    Returns:
+        The integer value of ``FORCED_SQL_LIMIT``.
+
+    Raises:
+        MissingEnvironmentVariableError: When ``FORCED_SQL_LIMIT`` is unset/blank.
+        ValueError: When ``FORCED_SQL_LIMIT`` cannot be parsed as an integer.
+    """
+    raw = os.environ.get("FORCED_SQL_LIMIT")
+    if raw is None or not raw.strip():
+        raise MissingEnvironmentVariableError(
+            "Missing required environment variables: FORCED_SQL_LIMIT. Aborting."
+        )
+    try:
+        return int(raw)
+    except ValueError:
+        raise ValueError(f"FORCED_SQL_LIMIT must be an integer, got {raw!r}")
 
 
 class MissingEnvironmentVariableError(RuntimeError):
@@ -101,9 +121,10 @@ def generate_sql(
     prompt: str,
     normalized_prompt: Optional[str] = None,
     *,
-    limit: int = FORCED_SQL_LIMIT,
+    limit: Optional[int] = None,
 ) -> str:
     """Deprecated helper retained for backward compatibility."""
+    _ = limit if limit is not None else get_forced_sql_limit()
     raise NotImplementedError(
         "generate_sql is deprecated. Inline the SQL within the generated analysis code."
     )
