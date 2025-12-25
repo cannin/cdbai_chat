@@ -60,7 +60,7 @@ def _init_run_context() -> None:
     (and the implicit `test_` prefix when running under pytest).
     """
     global _RUN_ID, _QUERY_COUNTER, RUN_OUTPUT_PREFIX, _LAST_CODE_TEXT, _NORMALIZED_PROMPT
-    _RUN_ID = datetime.now().strftime("%Y%m%dT%H%M%S")
+    _RUN_ID = datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%S")
     _QUERY_COUNTER = 0
     _LAST_CODE_TEXT = None
     _NORMALIZED_PROMPT = None
@@ -80,7 +80,7 @@ def _next_filename(suffix: str) -> Path:
     Returns:
         Path located under `output/` with the run id (and optional prefix) baked in.
     """
-    run_id = _RUN_ID or datetime.utcnow().strftime("%Y%m%dT%H%M%S")
+    run_id = _RUN_ID or datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%S")
     base = OUTPUT_DIR / f"{RUN_OUTPUT_PREFIX}tmp_{run_id}{suffix}"
     if not base.exists():
         return base
