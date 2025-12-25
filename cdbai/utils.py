@@ -34,7 +34,7 @@ REQUIRED_ENV_VARS: Sequence[str] = (
     "SMART_LLM",
 )
 
-FORCED_SQL_LIMIT = 512000
+FORCED_SQL_LIMIT = 750000
 
 
 class MissingEnvironmentVariableError(RuntimeError):
