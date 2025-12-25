@@ -35,10 +35,13 @@ litellm.drop_params = True
 
 
 # ===== Config =====
-TEMPLATE_NAME = "prompt_to_sql_context_template.jinja"
+CDBAI_PROMPT_TEMPLATE_NAME = os.environ.get(
+    "CDBAI_PROMPT_TEMPLATE_NAME",
+    "prompt_to_sql_context_template.jinja",
+)
 OUTPUT_DIR = Path("output")
 RUN_OUTPUT_PREFIX = ""
-FAST_LLM_MODEL = os.environ.get("FAST_LLM", os.environ.get("LITELLM_FAST_MODEL", "azure/gpt-4o-mini"))
+FAST_LLM_MODEL = os.environ.get("FAST_LLM", "azure/gpt-5-mini")
 SMART_LLM_MODEL = os.environ.get("SMART_LLM", "azure/gpt-5")
 SMART_LLM_REASONING_EFFORT = os.environ.get("SMART_LLM_REASONING_EFFORT", "medium")
 
@@ -699,9 +702,9 @@ def _run_pipeline(prompt: str):
 
         # 1) Read template file
         try:
-            template_text = _read_template(TEMPLATE_NAME)
+            template_text = _read_template(CDBAI_PROMPT_TEMPLATE_NAME)
         except Exception as e:
-            result = _err("read_template_file", str(e), input_preview=TEMPLATE_NAME)
+            result = _err("read_template_file", str(e), input_preview=CDBAI_PROMPT_TEMPLATE_NAME)
             return result
 
         # 2) Render template with the full user prompt
