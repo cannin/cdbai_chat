@@ -17,6 +17,8 @@ import seaborn as sns
 from PIL import Image
 from dotenv import load_dotenv
 import litellm
+from jinja2 import Template
+
 
 from .utils import (
     check_required_env_vars,
@@ -25,6 +27,7 @@ from .utils import (
     execute_sql_query,
     upload_file_to_s3,
     get_default_table_fqn,
+    get_forced_sql_limit,
 )
 
 logger = logging.getLogger(__name__)
@@ -418,8 +421,6 @@ def _render_template(template_text, *, user_prompt: str, normalized_prompt: str,
     Returns:
         Rendered template ready to send to the LLM.
     """
-    from jinja2 import Template
-
     logger.info("Rendering template with normalized prompt")
     template = Template(template_text)
     context = dict(extra)
@@ -710,6 +711,7 @@ def _run_pipeline(prompt: str):
                 user_prompt=prompt,
                 normalized_prompt=normalized_prompt,
                 default_table_fqn=get_default_table_fqn(),
+                forced_sql_limit=get_forced_sql_limit(),
             )
         except Exception as e:
             result = _err("render_template", f"{e.__class__.__name__}: {e}", input_preview=template_text)

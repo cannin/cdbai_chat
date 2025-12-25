@@ -37,7 +37,7 @@ Available helpers (already imported):
 SELECT *
 FROM `{{ default_table_fqn }}`
 WHERE UPPER(var_name) = 'TP53'\n  AND LOWER(dataset) IN ('ccle', 'nci60')\n  AND value IS NOT NULL
-LIMIT 750000;
+LIMIT {{ forced_sql_limit }};
 </sql_example>
 
 Normalized prompt:
@@ -50,7 +50,7 @@ Original user prompt:
 
 ## Embedded SQL Rules
 * Always use the FROM table as FROM `{{ default_table_fqn }}`; it is the only one that exists
-* Always put a LIMIT value of 750000 in the SQL query
+* Always put a LIMIT value of {{ forced_sql_limit }} in the SQL query
 * Do not include ORDER_BY or GROUP_BY statements in the SQL; do these transformations in Python if needed
 * Only return data tables from the SQL statement (e.g., do not run a correlations, averages, sums, etc) in the SQL statements
 * Build the necessary SQL inline (do NOT call generate_sql) and executes it via execute_sql_query.
