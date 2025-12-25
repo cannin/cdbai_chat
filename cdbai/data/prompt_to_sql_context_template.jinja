@@ -70,6 +70,7 @@ Original user prompt:
 * Keep all uses of a variable within the try/else that created it
 * Use import traceback and traceback.format_exc() to debug
 * Avoid generating code that mentions units (e.g., meters) unless explicitly mentioned in the returned data or prompt
+* Comment code for users with limited programming experience
 
 ## Plot Rules
 * When creating plots, first call allocate_plot_png_path() to reserve the PNG filename, then call allocate_plot_svg_path(png_path) to derive the matching SVG filename. Save both files and set result to {"type": "plot", "value": <png_path>, "svg": <svg_path>}
