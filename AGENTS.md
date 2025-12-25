@@ -7,7 +7,7 @@ The agent lives under `cdbai/` and exposes `cdbai_chat(prompt)` for programmatic
 Install dependencies locally via `uv pip install -e .`. The CLI usage mirrors production: `UV_CACHE_DIR=.uv_cache uv run run_code.py --prompt "<prompt>"`. Unit tests use stubbed dependencies: `python -m unittest discover tests`. When running locally, ensure required env vars are exported (Google project/dataset/table, AWS bucket/region, `SMART_LLM`, `FAST_LLM`, `LITELLM_PROXY_API_BASE`).
 
 ## Coding Style & Naming Conventions
-Target Python 3.10+, 4-space indentation, PEP 8 naming. Pipeline functions include docstrings with Args/Returns sections—match that style. Keep configuration in CONSTANT_CASE at module top and ensure new helpers stay import-friendly (no side-effects at import time). Plot helpers must use `allocate_plot_png_path()` (and `allocate_plot_svg_path(png_path)`) so artefact names stay aligned.
+Target Python 3.10+, 4-space indentation, PEP 8 naming, Google-style function descriptions. Pipeline functions include docstrings with Args/Returns sections—match that style. Keep configuration in CONSTANT_CASE at module top and ensure new helpers stay import-friendly (no side-effects at import time). Plot helpers must use `allocate_plot_png_path()` (and `allocate_plot_svg_path(png_path)`) so artefact names stay aligned.
 
 ## Testing Guidelines
 Tests rely on stubs (pandas, litellm, boto3). Avoid asserting brittle numeric results; focus on links, prompt handling, and error formatting. Clean up any files created under `output/` during tests (the harness already prefixes outputs with `test_`). Before deploying changes, run `python -m unittest discover tests` and (optionally) a live CLI run against a staging project.
